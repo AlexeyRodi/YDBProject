@@ -1,0 +1,109 @@
+<html>
+<head>
+    <select id="categories">
+        <option value="blank" selected>...</option>
+    </select>
+    <!-- Подключаемые из локального каталога файлы с описаниями классов и пр. -->
+	<script type="text/javascript" src="Car.js"></script>
+	<script type="text/javascript" src="script.js"></script>
+    <!-- Подключение jquery по общедоступной ссылке, можете перейти - посмотреть на 
+    сжатый донельзя код фреймворка -->
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script type="text/javascript">
+$(document).ready(function() {
+    $('#search_button').hide();
+    $("#buyers_table").hide();
+    $('.error_message').hide();
+
+    $.ajax({
+        url: yandex_function_url,
+        method: 'GET',
+        data: {
+            "data": "buyers_list"
+        },
+        // Поле, указывающее, какую функцию выполнить на 
+        // успешное получение ответа
+        success: function(data){ 
+            $("#buyers_table").show();
+            $('#search_button').show();
+            console.log(preconvert_json(data))
+            console.log(JSON.parse(preconvert_json(data)))
+            update_buyers_list(data)    
+        }
+    }).fail(function(data){
+        output_error("GET request failed");
+    })
+
+    // По примеру из прошлой лабы делаем заведомо неудачный 
+    // POST запрос, выводящий ошибку
+    $.ajax({
+        url: yandex_function_url,
+        method: 'POST',
+        success: function(data){ 
+            console.log(data); 
+        }
+    }).fail(function(data){
+        output_error("POST request failed");
+    })
+});
+
+// Метод для конвертации формата python в воспринимаемую js строку
+function preconvert_json(string) {
+    let json = string.split('\'').join("\"");
+    return json.split('b\"').join("\"");
+}
+
+// Метод, который будет заполнять таблицу пришедшими данными
+function update_buyers_list(data) 
+{
+    $("#buyers_table td").parent().remove();
+    let received_cars = JSON.parse(preconvert_json(data));
+    if(received_cars.length > 0)
+    {
+        for(let i = 0; i < received_cars.length; ++i) {
+            // Создаем объект класса для каждой пришедшей сущности
+            let car = new Car(received_cars[i]);
+            // Выполняем поиск элемента по ID, выбираем из него последний
+            // элемент с тегом tr - table row
+            $('#buyers_table tr:last').after(car.to_table_entry());
+        }
+        $("#buyers_table").show();
+    } else {
+        output_error("Incorrect data received")
+    }
+}
+
+// Метод, который покажет сообщение об ошибке и скроет её через пару секунд 
+function output_error(message, timeout = 2000) 
+{
+    $('.error_message').show();
+    $('.error_message').text(message);
+    setTimeout(function() {
+        $('.error_message').hide();
+    }, timeout);
+}
+
+	</script>
+    <!-- Подключение стилей из внешнего файла -->
+	<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Блок с текстом ошибки -->
+	<div class='error_message'>Not found</div> 
+    <!-- Таблица с идентификатором, при помощи которого к ней будет
+    обращаться код, использующий jQuery -->
+	<table id='buyers_table'>
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Phone number</th>
+		</tr>
+	</table>
+
+    <!-- Скрипт, в котором можно будет настроить реакцию на какое-либо 
+    событие элемента страницы: нажатие кнопки, изменение текстового поля и пр. -->
+	<script type="text/javascript">
+	</script>
+</body>
+</html>

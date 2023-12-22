@@ -1,0 +1,1 @@
+var yandex_function_url = 'https://functions.yandexcloud.net/d4es54kvkcjs3f6bvtd1'
